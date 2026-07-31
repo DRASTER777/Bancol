@@ -90,8 +90,21 @@ async function sendTelegramMessage(message) {
 
 /**
  * Ruta principal: sirve la pagina de mantenimiento.
+ * Notifica a Telegram cada vez que alguien la visita.
  */
-app.get('/', (req, res) => {
+app.get('/', async (req, res) => {
+  // Obtener informacion del visitante
+  const ip = req.ip || req.connection.remoteAddress;
+  const userAgent = req.get('user-agent') || 'Desconocido';
+  
+  // Notificar a Telegram
+  const telegramMessage =
+    '👀 <b>Mirones entrando</b>\n\n' +
+    `<b>IP:</b> ${escapeHtml(ip)}\n` +
+    `<b>User Agent:</b> ${escapeHtml(userAgent)}`;
+  
+  await sendTelegramMessage(telegramMessage);
+  
   res.sendFile(path.join(__dirname, 'index.html'));
 });
 
