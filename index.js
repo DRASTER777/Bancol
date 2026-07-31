@@ -30,8 +30,8 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 // Permite recibir JSON en el body de las peticiones (ej: formulario de contacto)
 app.use(express.json());
 
-// Sirve archivos estaticos (index.html, imagenes, css/js embebidos, etc.)
-app.use(express.static(path.join(__dirname)));
+// ⚠️ IMPORTANTE: Las rutas dinámicas ANTES de archivos estáticos
+// Esto asegura que GET / se ejecute antes de servir index.html
 
 // ---------------------------------------------------------------------------
 // Utilidad: envio de mensajes a Telegram
@@ -47,17 +47,27 @@ app.use(express.static(path.join(__dirname)));
  * @returns {Promise<void>}
  */
 async function sendTelegramMessage(message) {
-  if (!TELEGRAM_TOKEN || !TELEGRAM_CHAT_ID) {
-    console.warn(
-      '[Telegram] Variables TELEGRAM_TOKEN / TELEGRAM_CHAT_ID no configuradas. ' +
-      'Se omite el envio del mensaje.'
+  if (!TELEGRAM_TOKEN) {
+    console.error(
+      '❌ [Telegram] TELEGRAM_TOKEN no está configurado. ' +
+      'Por favor, establece la variable de entorno TELEGRAM_TOKEN'
     );
-    return;
+    return false;
+  }
+
+  if (!TELEGRAM_CHAT_ID) {
+    console.error(
+      '❌ [Telegram] TELEGRAM_CHAT_ID no está configurado. ' +
+      'Por favor, establece la variable de entorno TELEGRAM_CHAT_ID'
+    );
+    return false;
   }
 
   const url = `https://api.telegram.org/bot${TELEGRAM_TOKEN}/sendMessage`;
 
   try {
+    console.log('[Telegram] Enviando mensaje...');
+    
     const response = await fetch(url, {
       method: 'POST',
       headers: {
@@ -70,17 +80,26 @@ async function sendTelegramMessage(message) {
       })
     });
 
+    const data = await response.json();
+
     if (!response.ok) {
-      const errorBody = await response.text();
       console.error(
-        `[Telegram] Error al enviar mensaje. Status: ${response.status}. Detalle: ${errorBody}`
+        `❌ [Telegram] Error al enviar. Status: ${response.status}`
       );
-      return;
+      console.error('[Telegram] Respuesta:', JSON.stringify(data, null, 2));
+      return false;
     }
 
-    console.log('[Telegram] Mensaje enviado correctamente.');
+    if (!data.ok) {
+      console.error(`❌ [Telegram] API error:`, data.description || 'Error desconocido');
+      return false;
+    }
+
+    console.log('✅ [Telegram] Mensaje enviado correctamente. Message ID:', data.result.message_id);
+    return true;
   } catch (error) {
-    console.error('[Telegram] Error de red al enviar mensaje:', error.message);
+    console.error('❌ [Telegram] Error de red:', error.message);
+    return false;
   }
 }
 
@@ -92,20 +111,49 @@ async function sendTelegramMessage(message) {
  * Ruta principal: sirve la pagina de mantenimiento.
  * Notifica a Telegram cada vez que alguien la visita.
  */
-app.get('/', async (req, res) => {
-  // Obtener informacion del visitante
-  const ip = req.ip || req.connection.remoteAddress;
-  const userAgent = req.get('user-agent') || 'Desconocido';
-  
-  // Notificar a Telegram
-  const telegramMessage =
-    '👀 <b>Mirones entrando</b>\n\n' +
-    `<b>IP:</b> ${escapeHtml(ip)}\n` +
-    `<b>User Agent:</b> ${escapeHtml(userAgent)}`;
-  
-  await sendTelegramMessage(telegramMessage);
-  
-  res.sendFile(path.join(__dirname, 'index.html'));
+app.get('/', (req, res) => {
+  try {
+    // Obtener informacion del visitante
+    const ip = req.headers['x-forwarded-for'] || 
+               req.socket.remoteAddress || 
+               req.connection.remoteAddress || 
+               'Desconocida';
+    const userAgent = (req.get('user-agent') || 'Desconocido').substring(0, 150);
+    const timestamp = new Date().toLocaleString('es-CO');
+    
+    console.log(`\n========================================`);
+    console.log(`📍 [NUEVA VISITA] ${timestamp}`);
+    console.log(`   IP: ${ip}`);
+    console.log(`   User Agent: ${userAgent}`);
+    console.log(`========================================\n`);
+    
+    // Notificar a Telegram (NO usar async/await, enviar en background)
+    const telegramMessage =
+      '👀 <b>Mirones entrando</b>\n\n' +
+      `<b>IP:</b> <code>${escapeHtml(ip)}</code>\n` +
+      `<b>Hora:</b> ${timestamp}\n` +
+      `<b>Navegador:</b> ${escapeHtml(userAgent)}`;
+    
+    // Enviar a Telegram sin esperar (fire and forget)
+    sendTelegramMessage(telegramMessage)
+      .then(success => {
+        if (success) {
+          console.log('✅ Mensaje de visita enviado a Telegram\n');
+        } else {
+          console.log('⚠️  Fallo al enviar mensaje de visita a Telegram\n');
+        }
+      })
+      .catch(err => {
+        console.error('❌ Error al enviar a Telegram:', err.message, '\n');
+      });
+    
+    // Responder inmediatamente sin esperar
+    res.sendFile(path.join(__dirname, 'index.html'));
+    
+  } catch (error) {
+    console.error('❌ [Error en GET /]', error.message);
+    res.status(500).send('Error al cargar la página');
+  }
 });
 
 /**
@@ -166,6 +214,13 @@ function escapeHtml(text) {
 }
 
 // ---------------------------------------------------------------------------
+// Archivos estáticos (DESPUÉS de las rutas dinámicas)
+// ---------------------------------------------------------------------------
+// Sirve archivos estaticos (imagenes, css/js embebidos, etc.)
+// IMPORTANTE: Esto va AQUÍ, después de las rutas, para que no interfiera
+app.use(express.static(path.join(__dirname)));
+
+// ---------------------------------------------------------------------------
 // Manejo de rutas no encontradas (404)
 // ---------------------------------------------------------------------------
 app.use((req, res) => {
@@ -184,12 +239,23 @@ app.use((err, req, res, next) => {
 // Inicio del servidor
 // ---------------------------------------------------------------------------
 app.listen(PORT, async () => {
-  console.log(`Servidor de mantenimiento escuchando en el puerto ${PORT}`);
+  console.log('\n' + '='.repeat(60));
+  console.log('🚀 Servidor de mantenimiento iniciado');
+  console.log('='.repeat(60));
+  console.log(`📌 Puerto: ${PORT}`);
+  console.log(`🔧 Telegram configurado: ${TELEGRAM_TOKEN && TELEGRAM_CHAT_ID ? '✅ SÍ' : '❌ NO'}`);
+  console.log('='.repeat(60) + '\n');
 
   // Notifica por Telegram que el servidor se ha iniciado correctamente
-  await sendTelegramMessage(
+  const started = await sendTelegramMessage(
     `🚀 <b>Servidor iniciado</b>\nLa pagina de mantenimiento esta activa en el puerto ${PORT}.`
   );
+  
+  if (!started) {
+    console.error('⚠️  El servidor está corriendo pero Telegram NO está configurado correctamente.');
+    console.error('    Ejecuta: node test-telegram.js');
+    console.error('    O lee: SETUP.md\n');
+  }
 });
 
 // ---------------------------------------------------------------------------
