@@ -1,0 +1,17 @@
+{
+  "name": "maintenance-page",
+  "version": "1.0.0",
+  "description": "Pagina de mantenimiento con backend Express y notificaciones a Telegram",
+  "main": "index.js",
+  "type": "commonjs",
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "express": "^4.19.2"
+  },
+  "license": "MIT"
+}
