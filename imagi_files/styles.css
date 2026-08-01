@@ -1,0 +1,172 @@
+.header{
+    display: flex;
+    align-items: center;
+    justify-content: end;
+    width: 100%;
+    height: 60px;
+    background-image: url(/assets/img/headerIconBancolombia.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+    background-color: #fff;
+}
+
+.header span{
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    font-size: 14px;
+}
+
+.header i{
+    font-size: 18px;
+    font-weight: lighter;
+}
+
+.main{
+    padding: 5em 0 2em;
+    text-align: center;
+}
+
+.main__ttl{
+    font-size: 22px;
+    font-weight: 600;
+    color: #292929;
+}
+
+.box{
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+    padding: 48px;
+    margin-top: 30px;
+    border-radius: 16px;
+    background-color: #fff;
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 8px;
+}
+
+.box .box__txt{
+    font-size: 15px;
+    color: #2C2A29;
+}
+
+.box .box__txt strong{
+    font-weight: 600;
+}
+
+.box__element{
+    position: relative;
+}
+
+.box__element i{
+    position: absolute;
+    top: 50%;
+    left: 0px;
+    transform: translate(0, -50%);
+}
+
+.box__input{
+    position: relative;
+    width: 100%;
+    padding: 12px 3px 5px 30px;
+    border: none;
+    outline: none;
+    color: rgb(41, 41, 41);
+    border-bottom: 1px solid rgba(128, 130, 133, 0.76);
+    background-color: transparent;
+    z-index: 2;
+}
+
+.box__lbl{
+    position: absolute;
+    top: 48%;
+    left: 24px;
+    transform: translate(0, -50%);
+    transition: .2s;
+    z-index: 1;
+}
+
+.box__input:valid,
+.box__input:focus{
+    border-color: #FDDA24;
+}
+
+.box__input:focus ~ .box__lbl,
+.box__input:valid ~ .box__lbl{
+    top: -14px;
+    left: 0px;
+    transform: translate(0, 0);
+}
+
+.box__forget{
+    position: absolute;
+    bottom: -22px;
+    right: 0;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.box__opt{
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 24px;
+    margin-top: 24px;
+}
+
+.box__btn{
+    width: 150px;    
+    height: 50px;
+    background-color: #FDDA24;
+    border-color: transparent;
+    font-size: 18px;
+    font-weight: 600;
+    border-radius: 100px;
+    cursor: pointer;
+}
+
+.box__btn--transp{
+    background: rgb(255, 255, 255);
+    border: 1px solid rgb(44, 42, 41);
+}
+
+.picture{
+    width: 100%;
+    height: 150px;
+    margin-top: 100px;
+    background-image: url(/assets/img/trazo-mobile.svg);
+    background-repeat: no-repeat;
+}
+
+.line{
+    margin: 0 auto;
+    width: 85%;
+    height: 1px;
+    background: rgb(204, 204, 204);
+    border-radius: 4px;
+}
+
+.footer__logo1{
+    width: 140px;
+    height: 17.98px;
+    margin: 10px auto auto;
+    background-image: url(/assets/img/Bancolombia..svg);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.footer__logo2{
+    height: 14px;
+    margin-top: 8px;
+    background-image: url(/assets/img/vigilado.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+.footer span{
+    display: block;
+    margin-top: 15px;
+    text-align: center;
+    font-size: 12px;
+    padding-bottom: 50px;
+}
